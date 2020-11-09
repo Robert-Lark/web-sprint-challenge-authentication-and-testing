@@ -6,7 +6,12 @@ const { restrict } = require("./authenticate-middleware");
 
 router.post("/register", async (req, res, next) => {
 	try {
-		const { username, password } = req.body;
+    const { username, password } = req.body;
+    if (!username) {
+      	return res.status(401).json({
+					message: "username required",
+				});
+    }
 		const credentials = await db.add({
 			username,
 			password: await bcrypt.hash(password, 14),
@@ -31,13 +36,14 @@ router.post("/login", async (req, res, next) => {
 			{
 				userID: user.id,
 			},
-			process.env.JWT_SECRET
+			process.env.JWT_SECRET || "secretString"
 		);
 		res.cookie("token", token);
 		res.json({
 			message: `Welcome ${user.username}`,
 		});
 	} catch (err) {
+    console.log(err)
 		next(err);
 	}
 });
